@@ -49,7 +49,7 @@ def Rotation_matrix(angle_tuple):
                                                 @ Z_Rotation(angle_tuple[2])
     return R
 
-def Helmert_transformation(x, From):
+def Transformation(x, From):
     """3D Helmert transformation with known transformation Key 
     From is a dictionary of points
     (Rotation matrix parameters, Translation vector and scale in tuple)"""
@@ -161,7 +161,7 @@ def Build_A(x,From,identicals):
         A[iii:iii+3,6] = D_gamma
     return A
 
-def Helmert_LSM(From,To):
+def Helmert_transform(From,To):
     R0, x0 = Helmert_aproximate_parameters(From,To)
     identicals = list(set(To.keys()) & set(From.keys()))
     equation_count = 3*len(identicals)
@@ -195,7 +195,7 @@ def Helmert_LSM(From,To):
         counter += 1
     if counter == 100:
         print("Too many iterations")
-    Transformed_From = Helmert_transformation(x,From)
+    Transformed_From = Transformation(x,From)
     return x,Transformed_From
 
 # =============================================================================
