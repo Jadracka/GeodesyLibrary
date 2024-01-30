@@ -2,10 +2,39 @@ import os
 import subprocess
 import time
 import psutil
-import re
+import winreg
+import wmi
 
-SpatialAnalyzer = r"C:\Program Files (x86)\New River Kinematics" \
-    r"\SpatialAnalyzer 2023.2.0926.5\x64\Spatial Analyzer64.exe"
+def dongle_check():
+#    VID = 0x04B9
+#    PID = 0x0300
+    wmi_inst = wmi.WMI()
+    devices = wmi_inst.Win32_PnPDevice()
+    device_ids = [dev.SystemElement.DeviceID for dev in devices]
+    for devid in device_ids:
+        if ("VID_" + "04B9" + "&PID_" + "0300") in devid:
+            return True
+
+def get_SApath_registry():
+    try:
+        # Open the registry key
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
+                             r"SOFTWARE\New River Kinematics\Spatial Analyzer\Log")
+
+        # Read the registry value
+        value, _ = winreg.QueryValueEx(key, r"EXE Path")
+
+        # Close the registry key
+        winreg.CloseKey(key)
+        
+        program_name = os.path.basename(value)
+        return (value, program_name)
+    except Exception as e:
+        print("It seems the SA is not installed on this computer.")
+        print(f"Error: {e}")
+        del e, key, value, program_name
+        return None
+
 
 def start_program(program_path, timeout=6):
     try:
@@ -29,47 +58,16 @@ def is_program_running(program_name):
             return True
     return False
 
-if os.path.exists(SpatialAnalyzer):
-    # print(f"The file at {SpatialAnalyzer} exists. Starting SA.")
-    status = start_program(SpatialAnalyzer)
-    if status:
-        print("SA Started.")
-        
-else:
-    # Define the directory where you want to search for the executable file
-    search_directory = "C:\\"
-    print(f"I'm searching for Spatial Analyzer in {search_directory}.\n \
-    You may consider updating the file path to SpatialAnalyzer variable \n \
-    to make the next startup faster.")
-
-    pattern = re.compile(r"(?=.*Spatial)(?=.*Analyzer)(?!.*Installer)"
-                    r"(?!.*UDP)(?!.*SDK).*\.exe$", re.I)
-
-    matching_paths = []
-
-    # Loop through the files in the directory and its subdirectories
-    for root, dirs, files in os.walk(search_directory):
-        for file in files:
-            if pattern.match(file):
-                # Check if the file's title contains both words, no "Installer," and has a .exe extension
-                file_path = os.path.join(root, file)
-                matching_paths.append(file_path)
-
-    if len(matching_paths) == 1:
-        # Only one matching file found, execute it
-        print(f"Your SA path is: {matching_paths[0]}")
-        
-        status = start_program(matching_paths[0])
-        if status:
-            print("SA Started.")
-
-    elif len(matching_paths) > 1:
-        # Multiple matching files found, notify the user
-        print("Multiple SA instances found. Please update the file path with the desired version.")
-        print("SA paths:")
-        for path in matching_paths:
-            print(path)
-        
+def start_SA():
+    if not dongle_check():
+        print("SA Hardware key has not been found, is it plugged in?")
     else:
-        # No matching files found
-        print("No SA found. Try updating SA path in the variable.")
+        path, name = get_SApath_registry()
+        if not is_program_running(name):
+            start_program(path)
+        if is_program_running(name):
+            print("SA has been succesfully opened.")
+    del path, name
+    return True
+
+start_SA()
