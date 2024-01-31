@@ -65,7 +65,7 @@ def _start_program(program_path, timeout=6):
 
 def _is_program_running(program_name):
     for proc in psutil.process_iter(attrs=["name"]):
-        if proc.name == program_name:
+        if proc.name() == program_name:
             return True
 
     return False
@@ -78,14 +78,13 @@ def start_SA():
     path = _get_SApath_registry()
 
     if path is None:
-        raise SAException("It seems the SA is not installed on this computer.")
+        raise SAException("It seems that SA is not installed on this computer.")
 
     program_name = os.path.basename(path)
 
-    if not _is_program_running(program_name):
+    if _is_dongle_present() and not _is_program_running(program_name):
         if not _start_program(path):
             raise SAException("SA did not start or an error occurred")
-
 
 if __name__ == "__main__":
     start_SA()
