@@ -1,0 +1,110 @@
+import numpy as np
+import os
+from collections import defaultdict
+
+def read_point_file(file_path):
+    """
+    Reads point data from a text file and returns a dictionary of points.
+    
+    Args:
+        file_path (str): Path to the text file containing point data.
+        
+    Returns:
+        dict: A dictionary where the keys are point IDs (PoID) and the values 
+              are dictionaries containing coordinates, sigmas, sigma_mag, and 
+              covariance matrix for each point.
+    """
+    points = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            parts = line.strip().split(',')
+            PoID = parts[0]
+            coords = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
+            sigmas = np.array([float(parts[4]), float(parts[5]), float(parts[6])])
+            sigma_mag = float(parts[7])
+            cov_matrix = np.array([
+                [float(parts[8]), float(parts[9]), float(parts[10])],
+                [float(parts[11]), float(parts[12]), float(parts[13])],
+                [float(parts[14]), float(parts[15]), float(parts[16])]
+            ])
+            points[PoID] = {
+                'coords': coords,
+                'sigmas': sigmas,
+                'sigma_mag': sigma_mag,
+                'cov_matrix': cov_matrix
+            }
+    return points
+
+def aggregate_points(files):
+    """
+    Aggregates points from multiple files into a single dictionary.
+    
+    Args:
+        files (list): List of file paths containing point data.
+        
+    Returns:
+        dict: A dictionary where the keys are point IDs (PoID) and the values 
+              are lists of point data dictionaries from each file.
+    """
+    all_points = defaultdict(list)
+    for file_path in files:
+        points = read_point_file(file_path)
+        for PoID, data in points.items():
+            all_points[PoID].append(data)
+    return all_points
+
+def combine_points(all_points):
+    """
+    Combines instances of each point using the weighted averaging algorithm 
+    and calculates new coordinates and covariance matrices.
+    
+    Args:
+        all_points (dict): A dictionary where the keys are point IDs (PoID) and 
+                           the values are lists of point data dictionaries.
+    
+    Returns:
+        dict: A dictionary where the keys are point IDs (PoID) and the values 
+              are dictionaries containing the new coordinates, combined covariance 
+              matrix, number of instances, and sources of each point.
+    """
+    combined_points = {}
+    for PoID, instances in all_points.items():
+        points = [instance['coords'] for instance in instances]
+        cov_matrices = [instance['cov_matrix'] for instance in instances]
+        
+        # Calculate inverse covariance matrices
+        inv_cov_matrices = [np.linalg.inv(cov) for cov in cov_matrices]
+        
+        # Calculate the combined covariance matrix
+        combined_cov_matrix = np.linalg.inv(sum(inv_cov_matrices))
+        
+        # Calculate the weighted sum of points
+        weighted_sum_points = sum(W @ p for W, p in zip(inv_cov_matrices, points))
+        
+        # Calculate the averaged point
+        avg_point = combined_cov_matrix @ weighted_sum_points
+        
+        combined_points[PoID] = {
+            'coords': avg_point,
+            'cov_matrix': combined_cov_matrix,
+            'num_instances': len(instances),
+            'sources': [os.path.basename(file_path) for file_path in files]
+        }
+    return combined_points
+
+# Define the paths to the text files
+file_paths = ['path/to/file1.txt', 'path/to/file2.txt', 'path/to/file3.txt']
+
+# Read and aggregate points from the text files
+all_points = aggregate_points(file_paths)
+
+# Combine points and calculate the new coordinates and covariance matrices
+combined_points = combine_points(all_points)
+
+# Output the results
+for PoID, data in combined_points.items():
+    print(f"PoID: {PoID}")
+    print(f"  Averaged Point: {data['coords']}")
+    print(f"  Combined Covariance Matrix: \n{data['cov_matrix']}")
+    print(f"  Number of Instances: {data['num_instances']}")
+    print(f"  Sources: {data['sources']}")
