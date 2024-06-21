@@ -35,22 +35,23 @@ def read_point_file(file_path):
             }
     return points
 
-def aggregate_points(files):
+def aggregate_points(file_paths):
     """
     Aggregates points from multiple files into a single dictionary.
     
     Args:
-        files (list): List of file paths containing point data.
+        file_paths (list): List of file paths containing point data.
         
     Returns:
         dict: A dictionary where the keys are point IDs (PoID) and the values 
               are lists of point data dictionaries from each file.
     """
-    all_points = defaultdict(list)
-    for file_path in files:
+    all_points = defaultdict(lambda: {'instances': [], 'sources': []})
+    for file_path in file_paths:
         points = read_point_file(file_path)
         for PoID, data in points.items():
-            all_points[PoID].append(data)
+            all_points[PoID]['instances'].append(data)
+            all_points[PoID]['sources'].append(os.path.basename(file_path))
     return all_points
 
 def combine_points(all_points):
@@ -60,7 +61,8 @@ def combine_points(all_points):
     
     Args:
         all_points (dict): A dictionary where the keys are point IDs (PoID) and 
-                           the values are lists of point data dictionaries.
+                           the values are dictionaries with instances of point 
+                           data and the sources they came from.
     
     Returns:
         dict: A dictionary where the keys are point IDs (PoID) and the values 
@@ -68,7 +70,8 @@ def combine_points(all_points):
               matrix, number of instances, and sources of each point.
     """
     combined_points = {}
-    for PoID, instances in all_points.items():
+    for PoID, data in all_points.items():
+        instances = data['instances']
         points = [instance['coords'] for instance in instances]
         cov_matrices = [instance['cov_matrix'] for instance in instances]
         
@@ -88,12 +91,14 @@ def combine_points(all_points):
             'coords': avg_point,
             'cov_matrix': combined_cov_matrix,
             'num_instances': len(instances),
-            'sources': [os.path.basename(file_path) for file_path in files]
+            'sources': list(set(data['sources']))  # Only include unique sources
         }
     return combined_points
 
 # Define the paths to the text files
-file_paths = ['path/to/file1.txt', 'path/to/file2.txt', 'path/to/file3.txt']
+file_paths = ['0_Point List.txt', 
+              '1_Point List.txt', 
+              '2_Point List.txt']
 
 # Read and aggregate points from the text files
 all_points = aggregate_points(file_paths)
