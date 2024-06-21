@@ -15,27 +15,27 @@ The input consists of:
 ### Step 1: Inverse Covariance Matrices
 
 For each covariance matrix \(\Sigma_i\), calculate the inverse matrix \(W_i\):
-\[ 
+$$ 
 W_i = \Sigma_i^{-1}
-\]
+$$
 
 ### Step 2: Combined Covariance Matrix
 
 Calculate the combined covariance matrix \(\Sigma_{\text{combined}}\) using the sum of the inverse covariance matrices:
-\[
+$$
 \Sigma_{\text{combined}} = \left( \sum_{i} W_i \right)^{-1}
-\]
+$$
 
 ### Step 3: Weighted Sum of Points
 
 Calculate the weighted sum of the points:
-\[
+$$
 \mathbf{p}_{\text{weighted\_sum}} = \sum_{i} W_i \mathbf{p}_i
-\]
+$$
 
 ### Step 4: Averaged Point
 
 Calculate the averaged point \(\mathbf{p}_{\text{avg}}\) using the combined covariance matrix and the weighted sum of points:
-\[
+$$
 \mathbf{p}_{\text{avg}} = \Sigma_{\text{combined}} \mathbf{p}_{\text{weighted\_sum}}
-\]
+$$

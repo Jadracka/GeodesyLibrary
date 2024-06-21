@@ -67,7 +67,7 @@ def combine_points(all_points):
     Returns:
         dict: A dictionary where the keys are point IDs (PoID) and the values 
               are dictionaries containing the new coordinates, combined covariance 
-              matrix, number of instances, and sources of each point.
+              matrix, standard deviations, number of instances, and sources of each point.
     """
     combined_points = {}
     for PoID, data in all_points.items():
@@ -87,23 +87,31 @@ def combine_points(all_points):
         # Calculate the averaged point
         avg_point = combined_cov_matrix @ weighted_sum_points
         
+        # Calculate standard deviations from the combined covariance matrix
+        sigma_x = np.sqrt(combined_cov_matrix[0, 0])
+        sigma_y = np.sqrt(combined_cov_matrix[1, 1])
+        sigma_z = np.sqrt(combined_cov_matrix[2, 2])
+        
         combined_points[PoID] = {
             'coords': avg_point,
             'cov_matrix': combined_cov_matrix,
+            'sigma_x': sigma_x,
+            'sigma_y': sigma_y,
+            'sigma_z': sigma_z,
             'num_instances': len(instances),
             'sources': list(set(data['sources']))  # Only include unique sources
         }
     return combined_points
 
 # Define the paths to the text files
-file_paths = ['0_Point List.txt', 
-              '1_Point List.txt', 
-              '2_Point List.txt']
+file_paths = ['Helpers/0_Point List.txt',
+              'Helpers/1_Point List.txt',
+              'Helpers/2_Point List.txt']
 
 # Read and aggregate points from the text files
 all_points = aggregate_points(file_paths)
 
-# Combine points and calculate the new coordinates and covariance matrices
+# Combine points and calculate the new coordinates, covariance matrices, and standard deviations
 combined_points = combine_points(all_points)
 
 # Output the results
@@ -111,5 +119,6 @@ for PoID, data in combined_points.items():
     print(f"PoID: {PoID}")
     print(f"  Averaged Point: {data['coords']}")
     print(f"  Combined Covariance Matrix: \n{data['cov_matrix']}")
+    print(f"  Sigma_X: {data['sigma_x']}, Sigma_Y: {data['sigma_y']}, Sigma_Z: {data['sigma_z']}")
     print(f"  Number of Instances: {data['num_instances']}")
     print(f"  Sources: {data['sources']}")
