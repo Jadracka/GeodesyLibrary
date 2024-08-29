@@ -1,0 +1,118 @@
+Found instrument line at row 70: Transform
+V2::0 - Leica AT960/930
+Instrument added: Transform
+V2::0 - Leica AT960/930 (Station Number: 4000)
+Found observations for instrument: Observations
+V2::0 - Leica AT960/930
+Column names identified in section: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11']
+Found instrument line at row 138: Transform
+V2::1 - Leica AT960/930
+Instrument added: Transform
+V2::1 - Leica AT960/930 (Station Number: 4001)
+Found observations for instrument: Observations
+V2::1 - Leica AT960/930
+Column names identified in section: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11']
+Found instrument line at row 206: Transform
+V2::2 - Leica AT960/930
+Instrument added: Transform
+V2::2 - Leica AT960/930 (Station Number: 4002)
+Found observations for instrument: Observations
+V2::2 - Leica AT960/930
+Column names identified in section: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11']
+Found instrument line at row 270: Transform
+V2::3 - Leica AT960/930
+Instrument added: Transform
+V2::3 - Leica AT960/930 (Station Number: 4003)
+Found observations for instrument: Observations
+V2::3 - Leica AT960/930
+Column names identified in section: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11']
+Total Instruments Detected: 4
+Coordinates successfully read from V:\Projekte\PETRA4\Simulationen\Girder alignment\Point List.txt.
+Saved measurements to h:\My Documents\Coding\GeodesyLibrary\Reformatting_SA_Instrument_Report\output_measurements.txt
+Saved coordinates to h:\My Documents\Coding\GeodesyLibrary\Reformatting_SA_Instrument_Report\output_coordinates.txt
+
+Renaming Key:
+A_1 -> 1
+A_2 -> 2
+A_3 -> 3
+A_4 -> 4
+A_5 -> 5
+A_6 -> 6
+A_7 -> 7
+A_8 -> 8
+A_9 -> 9
+A_10 -> 10
+A_11 -> 11
+A_12 -> 12
+A_13 -> 13
+A_14 -> 14
+A_15 -> 15
+A_16 -> 16
+A_17 -> 17
+A_18 -> 18
+A_19 -> 19
+A_20 -> 20
+A_21 -> 21
+A_22 -> 22
+A_23 -> 23
+A_24 -> 24
+A_25 -> 25
+A_26 -> 26
+A_27 -> 27
+A_28 -> 28
+A_29 -> 29
+A_30 -> 30
+A_31 -> 31
+A_32 -> 32
+A_33 -> 33
+A_34 -> 34
+A_35 -> 35
+A_36 -> 36
+A_37 -> 37
+A_38 -> 38
+A_39 -> 39
+A_40 -> 40
+A_41 -> 41
+A_42 -> 42
+A_43 -> 43
+A_44 -> 44
+A_45 -> 45
+A_46 -> 46
+A_47 -> 47
+A_48 -> 48
+A_50 -> 49
+A_51 -> 50
+A_52 -> 51
+A_53 -> 52
+A_54 -> 53
+A_55 -> 54
+A_56 -> 55
+A_57 -> 56
+A_58 -> 57
+A_59 -> 58
+A_60 -> 59
+A_61 -> 60
+A_62 -> 61
+A_63 -> 62
+A_64 -> 63
+A_65 -> 64
+A_66 -> 65
+A_67 -> 66
+A_68 -> 67
+A_69 -> 68
+A_70 -> 69
+A_71 -> 70
+A_72 -> 71
+A_73 -> 72
+A_74 -> 73
+A_75 -> 74
+A_76 -> 75
+A_77 -> 76
+A_78 -> 77
+A_79 -> 78
+A_80 -> 79
+A_81 -> 80
+A_82 -> 81
+A_83 -> 82
+A_84 -> 83
+A_85 -> 84

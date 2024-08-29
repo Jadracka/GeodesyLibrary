@@ -131,6 +131,39 @@ def print_sorted_points(combined_points):
         #print(f"  Sources: {data['sources']}")
         print()
 
+
+def write_combined_points_to_file(combined_points, output_file_path):
+    """
+    Writes the combined points to a text file in the specified format:
+    PointID X Y Z SigmaX SigmaY SigmaZ
+    
+    Args:
+        combined_points (dict): Dictionary where keys are point IDs (PoID) and
+                                values are dictionaries containing point data.
+        output_file_path (str): Path to the output text file.
+    
+    Raises:
+        IOError: If the file cannot be created or written to.
+    """
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        
+        with open(output_file_path, 'w') as file:
+            # Write header with comment characters
+            file.write('# Point data file\n')
+            file.write('# Format: PointID X Y Z SigmaX SigmaY SigmaZ\n')
+            
+            for PoID, data in combined_points.items():
+                line = (
+                    f"{PoID} "
+                    f"{data['coords'][0]:.6f} {data['coords'][1]:.6f} {data['coords'][2]:.6f} "
+                    f"{data['sigma_x']:.6f} {data['sigma_y']:.6f} {data['sigma_z']:.6f}\n"
+                )
+                file.write(line)
+    except Exception as e:
+        raise IOError(f"Error writing to file {output_file_path}: {e}")
+
 # Define the paths to the text files
 file_paths = ['Helpers/0_Point List.txt', 'Helpers/1_Point List.txt', 'Helpers/2_Point List.txt']
 
@@ -142,3 +175,6 @@ combined_points = combine_points(all_points)
 
 # Print the sorted points by their sigma_xy
 print_sorted_points(combined_points)
+
+output_file_path = 'Helpers/output.txt'
+write_combined_points_to_file(combined_points, output_file_path)
