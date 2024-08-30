@@ -1,17 +1,14 @@
 import pandas as pd
 import re
 import os
+from datetime import datetime  # Import for timestamp generation
+
+# Generate a timestamp for unique file naming
+timestamp = datetime.now().strftime('%d%b%y_%H%M')  # Format: 24Aug30_0923
 
 # --------------------- Configuration Section ---------------------
+"""You Can Touch"""
 # Constants and configurable settings
-
-# Precision settings
-ZENITHAL_ANGLE_PRECISION = 0.00015
-DIRECTION_PRECISION = 0.00015
-SLOPE_DISTANCE_PRECISION_CONSTANT = 0.03903  # Fixed part of slope distance precision
-SLOPE_DISTANCE_PRECISION_VARIABLE = 1e-6     # Variable part of slope distance precision
-
-
 
 # Precision settings
 ZENITHAL_ANGLE_PRECISION = 0.00015
@@ -24,19 +21,22 @@ UNIT_ANGLES = 'gon'     # Expected unit for angles ('gon', 'rad', 'mrad', 'deg')
 UNIT_DISTANCES = 'mm'   # Expected unit for distances ('m', 'cm', 'mm', 'um')
 
 # File paths
-script_directory = os.path.dirname(os.path.abspath(__file__))
 OBSERVATIONS_FILE = 'V:\Projekte\PETRA4\Simulationen\Girder alignment\Instruments - CompositeReport.xlsx'  # Path to the Excel file with observations
 COORDINATES_FILE = 'V:\Projekte\PETRA4\Simulationen\Girder alignment\Point List.txt'                      # Path to the text file with coordinates
 
-# Output files
-OUTPUT_MEASUREMENTS_FILE = os.path.join(script_directory, 'output_measurements.txt')
-OUTPUT_COORDINATES_FILE = os.path.join(script_directory, 'output_coordinates.txt')
-LOG_FILE = os.path.join(script_directory, 'log_file.txt')
+# Extract the directory from OBSERVATIONS_FILE path
+output_directory = os.path.dirname(OBSERVATIONS_FILE)
+
+# Output files with timestamp in the same directory as OBSERVATIONS_FILE
+OUTPUT_MEASUREMENTS_FILE = os.path.join(output_directory, f'output_measurements_{timestamp}.txt')
+OUTPUT_COORDINATES_FILE = os.path.join(output_directory, f'output_coordinates_{timestamp}.txt')
+LOG_FILE = os.path.join(output_directory, f'log_file_{timestamp}.txt')
 
 # Toggle to print the log to the terminal
-PRINT_LOG_TO_TERMINAL = True
+PRINT_LOG_TO_TERMINAL = False
 
 # --------------------- Function Definitions ---------------------
+"""You can't touch!"""
 
 def log_message(message, log_data, print_to_terminal=True):
     """
@@ -75,7 +75,7 @@ def find_instrument_and_observations(file_path, log_data):
         # Identify the start of instrument information using the "Transform" keyword
         if isinstance(row.iloc[0], str) and row.iloc[0].startswith("Transform"):
             instrument_name = data.iloc[index, 0]
-            log_message(f"Found instrument line at row {index + 1}: {instrument_name}", log_data)
+            log_message(f"Found instrument line at row {index}: {instrument_name}", log_data)
 
             # Extract the measurement count from the next column in the same row
             meas_row = data.iloc[index + 1, 0]
@@ -101,12 +101,16 @@ def find_instrument_and_observations(file_path, log_data):
                 if isinstance(data.iloc[obs_index, 0], str) and data.iloc[obs_index, 0].startswith("Transform"):
                     observations_end = obs_index
                     break
+            # Extract units from the header row
+            azimuth_unit = re.search(r'\((.*?)\)', str(data.iloc[header_row, 3])).group(1)  # Column D
+            elevation_unit = re.search(r'\((.*?)\)', str(data.iloc[header_row, 4])).group(1)  # Column E
+            distance_unit = re.search(r'\((.*?)\)', str(data.iloc[header_row, 5])).group(1)  # Column F
+
+            units = {'Azimuth': azimuth_unit, 'Elevation': elevation_unit, 'Distance': distance_unit}
+
 
             # Extract the relevant section of observations between start and end
             observations = data.iloc[observations_start:observations_end]
-
-            # Log actual column names to ensure proper extraction
-            log_message(f"Column names identified in section: {observations.columns.tolist()}", log_data)
 
             # Append the extracted observations
             observation_sections.append((obs_instrument_name, observations, station_number))
@@ -115,7 +119,7 @@ def find_instrument_and_observations(file_path, log_data):
     matched_data = [(name, station_number, observations) for name, observations, station_number in observation_sections]
 
     log_message(f"Total Instruments Detected: {len(instrument_info)}", log_data)
-    return matched_data, {}
+    return matched_data, units
 
 def read_coordinates(file_path, log_data):
     """
@@ -238,10 +242,18 @@ def process_data(observations, coordinates, station_number, renaming_key, log_da
             log_message(f"Invalid measurement data for target {target}, skipping row.", log_data)
             continue
 
+        # Convert units if necessary
+        azimuth = azimuth * angle_to_gon(units["Azimuth"])
+        elevation = elevation * angle_to_gon(units["Elevation"])
+        distance = distance * distance_to_mm(units["Distance"])
+
         # First type: Measurement information with calculated precision
         measurements_output.append(f"zu {station_number} {target_number} {precision_config['zu']}")
         measurements_output.append(f"di {station_number} {target_number} {precision_config['di']}")
         measurements_output.append(f"sd {station_number} {target_number} {precision_config['sd'](distance)}")
+
+        # Log measurement details
+        log_message(f"Measurement for target {target_number}, Azimuth: {azimuth}, Elevation: {elevation}, Distance: {distance}", log_data)
 
     return measurements_output
 
@@ -249,14 +261,22 @@ def extract_instrument_coordinates(data, index):
     """
     Extracts the instrument coordinates and units from the specified rows.
     """
-    print(data[index])
-    # Extract coordinates from columns D, E, F
-    x_coord = float(data.iloc[index, 3])  # Column D
-    y_coord = float(data.iloc[index, 4])  # Column E
-    z_coord = float(data.iloc[index, 5])  # Column F
+    # Locate the row containing the position data by skipping headers
+    try:
+        x_coord = float(data.iloc[index, 1])  # Column D (X coordinate)
+        y_coord = float(data.iloc[index, 2])  # Column E (Y coordinate)
+        z_coord = float(data.iloc[index, 3])  # Column F (Z coordinate)
+    except ValueError as e:
+        raise ValueError(f"Error converting coordinate data to float at row {index}: {e}")
 
-    # Extract units from column C
-    #units = str(data.iloc[index, 2]).strip()  # Column C for units
+    # Extract units from the row above position data
+    units = re.sub(r'[^a-zA-Z]', '', str(data.iloc[index, 0]).strip())
+
+    # Convert units if necessary
+    conversion_factor = distance_to_mm(units)
+    x_coord *= conversion_factor
+    y_coord *= conversion_factor
+    z_coord *= conversion_factor
 
     return (x_coord, y_coord, z_coord)
 
@@ -271,8 +291,8 @@ def save_coordinates(coordinates, renaming_key, instrument_coords, file_name):
             file.write(f"{target_number} {coord[0]} {coord[1]} {coord[2]}\n")
         
         # Save instrument coordinates
-        for instr_name, (x, y, z) in instrument_coords.items():
-            file.write(f"{instr_name} {x} {y} {z} \n")#({units})
+        for station_number, (x, y, z) in instrument_coords.items():
+            file.write(f"{station_number} {x} {y} {z} \n")#({units})
 
     print(f"Coordinates saved to {file_name}")
 
@@ -287,14 +307,22 @@ def save_log(log_data, renaming_key, file_name):
     """
     Saves the log data and renaming key to a file.
     """
-    with open(file_name, 'w') as file:
-        # Write log data
-        file.write('\n'.join(log_data))
-        file.write('\n\nRenaming Key:\n')
+    try:
+        with open(file_name, 'w') as file:
+            # Write log data
+            file.write('\n'.join(log_data))
+            file.write('\n\nRenaming Key:\n')
+            
+            # Format and write renaming key
+            for original_name, numeric_id in renaming_key.items():
+                file.write(f"{original_name} -> {numeric_id}\n")
         
-        # Format and write renaming key
-        for original_name, numeric_id in renaming_key.items():
-            file.write(f"{original_name} -> {numeric_id}\n")
+        # Print success message only if saving is successful
+        print(f"Log file saved to {file_name}")
+    
+    except Exception as e:
+        print(f"Failed to save log file: {e}")
+
 
 # --------------------- Script Execution ---------------------
 
@@ -302,6 +330,8 @@ def save_log(log_data, renaming_key, file_name):
 log_data = []
 
 # Step 1: Read instrument and observation data
+xls = pd.ExcelFile(OBSERVATIONS_FILE)
+data = xls.parse(xls.sheet_names[0])  # Full DataFrame containing both instrument and observation data
 matched_data, units = find_instrument_and_observations(OBSERVATIONS_FILE, log_data)
 if matched_data is None:
     log_message("Error in finding instruments and observations.", log_data)
@@ -313,8 +343,8 @@ else:
     # Extract instrument coordinates for saving later
     instrument_coords = {}
     for instr_name, station_number, observations in matched_data:
-        index = observations.index.start - 2  # Adjust based on the starting index of the instrument data
-        instrument_coords[instr_name] = extract_instrument_coordinates(OBSERVATIONS_FILE, index)
+        index = observations.index.start - 5  # Adjust based on the starting index of the instrument data in the full DataFrame
+        instrument_coords[station_number] = extract_instrument_coordinates(data, index)
 
     # Check for instrument ID conflicts with the renaming scheme
     instruments = [(index, instr_name) for index, (instr_name, station_number, observations) in enumerate(matched_data)]
