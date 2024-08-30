@@ -1,6 +1,7 @@
 # Spacial Analyzer's Instrument Quick Report to Precise Planner Reformatter
 
-This Python script processes geodesy instrument reports to extract and format measurements and coordinates from input files, and outputs the results in text files. It ensures measurements are correctly formatted, coordinates are properly renamed, and all outputs are logged to a unique file.
+This Python script processes [Spatial Analyzer](https://www.kinematics.com/spatialanalyzer/)'s Instrument Quick Reports to extract and format measurements and coordinates from input files, and outputs the results in text files formatted for [Precise Planner](https://k154.fsv.cvut.cz/~stroner/PPlanner/). It ensures measurements are correctly formatted, coordinates are properly renamed, and all outputs are logged to a unique file.
+
 
 ## Features
 
