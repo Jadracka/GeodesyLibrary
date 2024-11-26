@@ -16,7 +16,7 @@ def print_last_line_with_number(filename):
             print("The file is empty.")
 
 # Replace 'yourfile.csv' with the path to your CSV file.
-filename = 'Helpers\Channels_3000.csv'
+filename = 'V:/Projekte/PETRA4/Pillar stability Tests/06Aug24 Instrument Stand Prototype 0 - LT_Arm_Seismo/Channels_300.csv'
 print_last_line_with_number(filename)
-filename = 'Helpers\Channels_300.csv'
+filename = 'V:/Projekte/PETRA4/Pillar stability Tests/06Aug24 Instrument Stand Prototype 0 - LT_Arm_Seismo/Channels.csv'
 print_last_line_with_number(filename)
